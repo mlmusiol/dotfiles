@@ -1,0 +1,1 @@
+oh-my-posh init pwsh --config "$HOME\.local\share\chezmoi\ohmyposh-theme.json" | Invoke-Expression

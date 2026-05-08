@@ -1,0 +1,22 @@
+-- Pull in the wezterm API
+local wezterm = require("wezterm")
+
+-- This will hold the configuration.
+local config = wezterm.config_builder()
+
+-- This is where you actually apply your config choices.
+
+-- For example, changing the initial geometry for new windows:
+config.initial_cols = 120
+config.initial_rows = 28
+
+config.window_background_opacity = 0.85
+config.font_size = 12
+config.color_scheme = "nightfox"
+
+config.font = wezterm.font("JetBrainsMono Nerd Font")
+config.default_prog = { "pwsh.exe" }
+config.window_decorations = "RESIZE" -- Hides the title bar, but still allows resizing the window by dragging the edges
+config.hide_tab_bar_if_only_one_tab = true
+-- Finally, return the configuration to wezterm:
+return config
