@@ -1,3 +1,4 @@
+{{- if eq .chezmoi.os "windows" -}}
 # Windows dev setup for chezmoi
 
 $ErrorActionPreference = "Stop"
@@ -313,3 +314,4 @@ Write-Host "1. Run: gh auth login"
 Write-Host "2. Open PowerShell 7 and verify Oh My Posh loads."
 Write-Host "3. For tree-sitter native parsers, install Visual Studio Build Tools C++ workload if needed."
 Write-Host ""
+{{- end -}}

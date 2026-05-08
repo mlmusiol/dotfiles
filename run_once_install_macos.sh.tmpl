@@ -1,0 +1,167 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# macOS dev setup for chezmoi
+
+set -euo pipefail
+
+STATUS_OK=0
+STATUS_SKIP=0
+STATUS_WARN=0
+STATUS_FAIL=0
+
+TABLE_BORDER="+------------------------------+----------------------------------------------+--------+"
+
+color_reset="\033[0m"
+color_green="\033[32m"
+color_darkgray="\033[90m"
+color_yellow="\033[33m"
+color_red="\033[31m"
+color_magenta="\033[35m"
+color_cyan="\033[36m"
+
+state_color() {
+    case "$1" in
+        OK)   printf "%s" "$color_green" ;;
+        SKIP) printf "%s" "$color_darkgray" ;;
+        WARN) printf "%s" "$color_yellow" ;;
+        FAIL) printf "%s" "$color_red" ;;
+        *)    printf "%s" "$color_reset" ;;
+    esac
+}
+
+write_item_result() {
+    local item="$1" state="$2" reason="${3:--}"
+    case "$state" in
+        OK)   STATUS_OK=$((STATUS_OK + 1)) ;;
+        SKIP) STATUS_SKIP=$((STATUS_SKIP + 1)) ;;
+        WARN) STATUS_WARN=$((STATUS_WARN + 1)) ;;
+        FAIL) STATUS_FAIL=$((STATUS_FAIL + 1)) ;;
+    esac
+    local col
+    col="$(state_color "$state")"
+    printf "${col}| %-28s | %-44s | %-6s |${color_reset}\n" "$item" "$reason" "$state"
+    printf "${color_darkgray}%s${color_reset}\n" "$TABLE_BORDER"
+}
+
+write_section() {
+    printf "\n\n"
+    printf "${color_magenta}--- %s ---${color_reset}\n" "$1"
+    printf "${color_darkgray}%s${color_reset}\n" "$TABLE_BORDER"
+    printf "${color_darkgray}| %-28s | %-44s | %-6s |${color_reset}\n" "Item" "Result" "State"
+    printf "${color_darkgray}%s${color_reset}\n" "$TABLE_BORDER"
+}
+
+write_summary() {
+    printf "\n"
+    printf "${color_cyan}Run summary:${color_reset}\n"
+    printf "${color_green}  OK   : %d${color_reset}\n" "$STATUS_OK"
+    printf "${color_darkgray}  SKIP : %d${color_reset}\n" "$STATUS_SKIP"
+    printf "${color_yellow}  WARN : %d${color_reset}\n" "$STATUS_WARN"
+    printf "${color_red}  FAIL : %d${color_reset}\n" "$STATUS_FAIL"
+    printf "\n"
+}
+
+ensure_homebrew() {
+    if command -v brew &>/dev/null; then
+        write_item_result "Homebrew" "SKIP" "already installed"
+        return
+    fi
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Add Homebrew to PATH for Apple Silicon (/opt/homebrew) or Intel (/usr/local)
+    if [[ -x /opt/homebrew/bin/brew ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -x /usr/local/bin/brew ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+    if command -v brew &>/dev/null; then
+        write_item_result "Homebrew" "OK" "installed"
+    else
+        write_item_result "Homebrew" "FAIL" "installed but not found in PATH"
+        exit 1
+    fi
+}
+
+install_brew_package() {
+    local formula="$1" name="${2:-$1}"
+    if brew list --formula "$formula" &>/dev/null; then
+        write_item_result "$name" "SKIP" "already installed"
+        return
+    fi
+    if brew install "$formula" &>/dev/null; then
+        write_item_result "$name" "OK" "installed via brew"
+    else
+        write_item_result "$name" "FAIL" "brew install failed"
+        exit 1
+    fi
+}
+
+install_brew_cask() {
+    local cask="$1" name="${2:-$1}"
+    if brew list --cask "$cask" &>/dev/null; then
+        write_item_result "$name" "SKIP" "already installed"
+        return
+    fi
+    if brew install --cask "$cask" &>/dev/null; then
+        write_item_result "$name" "OK" "installed via brew cask"
+    else
+        write_item_result "$name" "FAIL" "brew cask install failed"
+        exit 1
+    fi
+}
+
+# ---------------------------------------------------------------------------
+
+write_section "Installing Homebrew"
+ensure_homebrew
+
+write_section "Installing core tools"
+install_brew_package "git"           "Git"
+install_brew_package "gh"            "GitHub CLI"
+install_brew_package "neovim"        "Neovim"
+install_brew_package "oh-my-posh"    "Oh My Posh"
+install_brew_package "lazygit"       "lazygit"
+install_brew_package "ripgrep"       "ripgrep"
+install_brew_package "fd"            "fd"
+install_brew_package "rustup"        "Rustup"
+
+write_section "Installing casks"
+install_brew_cask "wezterm"                      "WezTerm"
+install_brew_cask "font-jetbrains-mono-nerd-font" "JetBrainsMono Nerd Font"
+
+write_section "Installing cargo-binstall and tree-sitter-cli"
+
+export PATH="$HOME/.cargo/bin:$PATH"
+
+if ! command -v cargo &>/dev/null; then
+    write_item_result "Cargo" "WARN" "not in PATH; run 'rustup-init' then rerun"
+else
+    if ! command -v cargo-binstall &>/dev/null; then
+        curl -L --proto '=https' --tlsv1.2 -sSf \
+            https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh \
+            | bash &>/dev/null
+        write_item_result "cargo-binstall" "OK" "installed"
+    else
+        write_item_result "cargo-binstall" "SKIP" "already installed"
+    fi
+
+    if ! command -v tree-sitter &>/dev/null; then
+        if cargo binstall tree-sitter-cli -y &>/dev/null; then
+            write_item_result "tree-sitter-cli" "OK" "installed"
+        else
+            write_item_result "tree-sitter-cli" "FAIL" "cargo binstall failed"
+            exit 1
+        fi
+    else
+        write_item_result "tree-sitter-cli" "SKIP" "already installed"
+    fi
+fi
+
+printf "\n"
+printf "${color_green}Setup completed.${color_reset}\n"
+write_summary
+printf "${color_cyan}Manual steps still needed:${color_reset}\n"
+printf "1. Run: gh auth login\n"
+printf "2. Open a new terminal and verify Oh My Posh loads in zsh.\n"
+printf "3. Run 'rustup-init' if cargo was not found above, then rerun this script.\n"
+printf "\n"
+{{- end -}}
