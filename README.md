@@ -7,7 +7,8 @@
 # Updating dotfiles
 
 If changes were made, go to chezmoi root with `chezmoi cd`
-add them with `chezmoi add <...>` and
+edit files with `chezmoi edit  <target-file>`
+apply with `chezmoi apply <target-file>`
 commit & push.
 
 # Syncing dotfiles
