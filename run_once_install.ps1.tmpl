@@ -102,6 +102,21 @@ function Install-WingetPackage {
     }
 
     $wingetText = ($wingetOutput | Out-String)
+    $sourceMetadataIssue = $wingetText -match "Failed when opening source" -or $wingetText -match "Data required by the source is missing"
+    if ($sourceMetadataIssue) {
+        winget source reset --force *> $null
+        winget source update *> $null
+
+        $wingetOutput = winget install --id $Id --exact --source winget --accept-package-agreements --accept-source-agreements 2>&1
+        $wingetExitCode = $LASTEXITCODE
+        if ($wingetExitCode -eq 0) {
+            Write-ItemResult -Item $Name -State "OK" -Reason "installed via winget after source reset"
+            return
+        }
+
+        $wingetText = ($wingetOutput | Out-String)
+    }
+
     if ($wingetText -match "No package found matching input criteria") {
         Write-ItemResult -Item $Name -State "WARN" -Reason "not found in winget; skipped"
         return
