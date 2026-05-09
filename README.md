@@ -1,43 +1,15 @@
 # Installation
 
-## (1) Prerequisites
+1. Install [chezmoi](https://www.chezmoi.io/install/)
+2. Run `chezmoi init https://github.com/mlmusiol/dotfiles.git --apply`
+   chezmoi will run the installation script automatically on Windows / MacOS
 
-### Windows
-* Git
-* chezmoi
-* GitHub CLI (`gh`) *(for private repo)*
+# Updating dotfiles
 
-### macOS
-* Xcode Command Line Tools: `xcode-select --install`
-* chezmoi: `brew install chezmoi` *(or see [chezmoi.io](https://www.chezmoi.io/install/))*
-* GitHub CLI (`gh`) *(for private repo)*
+If changes were made, go to chezmoi root with `chezmoi cd`
+add them with `chezmoi add <...>` and
+commit & push.
 
-## (2) Authenticate (private repo only)
+# Syncing dotfiles
 
-```bash
-gh auth login
-```
-
-## (3) Apply dotfiles
-
-```bash
-chezmoi init https://github.com/mlmusiol/dotfiles.git --apply
-```
-
-> Works on both **Windows** and **macOS**. The setup script automatically detects the OS and runs the appropriate installer (winget/scoop on Windows, Homebrew on macOS).
-
-## (4) Update dotfiles
-
-```bash
-chezmoi update
-```
-
-## (5) Local changes
-
-```bash
-chezmoi add <file>
-chezmoi cd
-git add .
-git commit -m "message"
-git push
-```
+Run `chezmoi update`
