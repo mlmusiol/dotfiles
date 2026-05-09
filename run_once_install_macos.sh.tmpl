@@ -98,11 +98,30 @@ install_brew_package() {
 install_brew_cask() {
     local cask="$1" name="${2:-$1}"
     if brew list --cask "$cask" &>/dev/null; then
-        write_item_result "$name" "SKIP" "already installed"
-        return
+        if [[ "$cask" == "wezterm" && ! -d "/Applications/WezTerm.app" ]]; then
+            brew uninstall --cask --force "$cask" &>/dev/null || true
+        else
+            write_item_result "$name" "SKIP" "already installed"
+            return
+        fi
     fi
     local output
     brew uninstall --cask --force "$cask" &>/dev/null || true
+    if [[ "$cask" == "wezterm" ]]; then
+        if output=$(brew install --cask --appdir=/Applications "$cask" 2>&1); then
+            if [[ -d "/Applications/WezTerm.app" ]]; then
+                write_item_result "$name" "OK" "installed via brew cask to /Applications"
+            else
+                write_item_result "$name" "FAIL" "installed but /Applications/WezTerm.app is missing"
+                exit 1
+            fi
+        else
+            printf "%s\n" "$output" >&2
+            write_item_result "$name" "FAIL" "brew cask install failed"
+            exit 1
+        fi
+        return
+    fi
     if output=$(brew install --cask "$cask" 2>&1); then
         write_item_result "$name" "OK" "installed via brew cask"
     else
