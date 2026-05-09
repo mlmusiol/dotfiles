@@ -1,0 +1,33 @@
+name: Installer full test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  full-macos:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run macOS installer full test
+        run: |
+          sed '1d;$d' run_once_install_macos.sh.tmpl > "$RUNNER_TEMP/install-macos.sh"
+          chmod +x "$RUNNER_TEMP/install-macos.sh"
+          bash "$RUNNER_TEMP/install-macos.sh"
+
+  full-windows:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Windows installer full test
+        shell: pwsh
+        run: |
+          $content = Get-Content run_once_install.ps1.tmpl
+          $rendered = $content | Select-Object -Skip 1 | Select-Object -SkipLast 1
+          $scriptPath = Join-Path $env:RUNNER_TEMP "install-windows.ps1"
+          $rendered | Set-Content -Path $scriptPath -Encoding UTF8
+          & $scriptPath

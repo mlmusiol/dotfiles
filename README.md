@@ -13,3 +13,7 @@ commit & push.
 # Syncing dotfiles
 
 Run `chezmoi update`
+
+# CI
+
+GitHub Actions runs full installer tests on macOS and Windows (`.github/workflows/installer-full.yml`).
