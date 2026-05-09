@@ -102,8 +102,12 @@ install_brew_cask() {
         return
     fi
     local output
-    if output=$(brew install --cask "$cask" 2>&1); then
-        write_item_result "$name" "OK" "installed via brew cask"
+    if output=$(brew install --cask --overwrite "$cask" 2>&1); then
+        if printf "%s" "$output" | grep -qi "already installed"; then
+            write_item_result "$name" "SKIP" "already installed"
+        else
+            write_item_result "$name" "OK" "installed via brew cask"
+        fi
     else
         printf "%s\n" "$output" >&2
         write_item_result "$name" "FAIL" "brew cask install failed"
