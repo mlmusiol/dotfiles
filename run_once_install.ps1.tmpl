@@ -87,6 +87,11 @@ function Install-WingetPackage {
         [string]$Name = $Id
     )
 
+    if ($env:GITHUB_ACTIONS -eq "true" -and $Id -eq "Microsoft.PowerShell") {
+        Write-ItemResult -Item $Name -State "SKIP" -Reason "github actions runner; avoid self-update of pwsh"
+        return
+    }
+
     $installed = winget list --id $Id --exact 2>$null
     if ($LASTEXITCODE -eq 0 -and $installed -match $Id) {
         Write-ItemResult -Item $Name -State "SKIP" -Reason "already installed"
