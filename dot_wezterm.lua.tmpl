@@ -17,8 +17,15 @@ config.color_scheme = "nightfox"
 config.font = wezterm.font("JetBrainsMono Nerd Font")
 {{ if eq .chezmoi.os "windows" -}}
 config.default_prog = { "pwsh.exe" }
+config.mouse_bindings = {
+  {
+    event = { Drag = { streak = 1, button = "Left" } },
+    mods = "ALT",
+    action = wezterm.action.StartWindowDrag,
+  },
+}
 {{ end -}}
-config.window_decorations = "RESIZE" -- Hides the title bar, but still allows resizing the window by dragging the edges
+config.window_decorations = "RESIZE" -- Hide the title bar while still allowing edge resize
 config.hide_tab_bar_if_only_one_tab = true
 -- Finally, return the configuration to wezterm:
 return config
