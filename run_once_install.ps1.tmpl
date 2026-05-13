@@ -207,6 +207,7 @@ function Install-ScoopPackage {
 Write-Section -Title "Installing core tools"
 
 Install-WingetPackage -Id "Git.Git" -Name "Git"
+Install-WingetPackage -Id "dandavison.delta" -Name "delta"
 Install-WingetPackage -Id "GitHub.cli" -Name "GitHub CLI"
 Install-WingetPackage -Id "Microsoft.PowerShell" -Name "PowerShell 7"
 Install-WingetPackage -Id "wez.wezterm" -Name "WezTerm"

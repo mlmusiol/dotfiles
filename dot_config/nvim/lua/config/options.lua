@@ -4,5 +4,5 @@
 --
 vim.g.neovide_opacity = 0.85
 vim.g.neovide_normal_opacity = 0.85
-vim.o.guifont = "JetBrainsMono Nerd Font:h12"
+vim.o.guifont = "JetBrainsMono Nerd Font:h10"
 vim.g.neovide_fullscreen = true
